@@ -1,34 +1,112 @@
-### 📊 Explication des Variables - BitcoinHeist Dataset
+# 💻 Projet RansomTrack - Détection de Ransomwares sur la Blockchain Bitcoin
 
-| Variable | Description | Lien avec le ransomware |
-|--|--|--|
-| **address** | Adresse Bitcoin (wallet) | Identifiant public du portefeuille recevant ou envoyant des fonds. Les ransomwares utilisent des adresses spécifiques pour collecter les rançons. |
-| **length** | Nombre total de transactions liées à cette adresse | Indique si l’adresse est fortement utilisée (recyclage possible dans certaines attaques). |
-| **weight** | Indicateur de centralité de l’adresse dans le graphe | Les adresses très connectées sont souvent des **hubs** qui reçoivent des paiements de plusieurs victimes. |
-| **count** | Nombre total de transactions entrantes/sortantes | Mesure l’activité de l’adresse, utile pour repérer des adresses de collecte actives. |
-| **looped** | 1 si l’adresse réutilise des fonds entre adresses connues, sinon 0 | Le **looping** est une technique pour brouiller les pistes dans le blanchiment. |
-| **neighbors** | Nombre d’adresses directement connectées | Faible nombre = adresse dédiée à une seule victime, fort nombre = possible hub de collecte. |
-| **income** | Montant total reçu (en satoshis) | Permet d’estimer la valeur des rançons collectées. |
-| **label** | Type de ransomware associé ou "princeton" si légitime | C’est la **cible** pour la classification supervisée. |
+## 📖 Description
+
+Ce projet vise à détecter les adresses Bitcoin utilisées par des ransomwares, en analysant leurs **comportements transactionnels** dans la blockchain.  
+À partir du dataset **BitcoinHeist**, nous avons entraîné un modèle **XGBoost** capable de classifier une adresse comme **légitime (white)** ou **suspecte (ransomware)**.
+
+L’ensemble du projet est intégré dans un **dashboard interactif Streamlit**, permettant :
+- D’analyser les patterns globaux du dataset.
+- De tester une **nouvelle transaction** pour savoir si elle est suspecte ou non.
 
 ---
 
-### 🔗 Processus typique d’un ransomware
+## 📂 Structure du Projet
 
-1. Infection de la victime (fichiers chiffrés).
-2. Demande de rançon avec une **adresse Bitcoin spécifique**.
-3. La victime paie la rançon.
-4. Les attaquants déplacent les fonds vers d’autres adresses (blanchiment via tumbling).
-5. L’argent est retiré via des exchanges.
+```text
+📂 RansomTrack/
+├──  BitcoinHeistData.csv             # Dataset source
+├── app.py                            # Application Streamlit complète (Dashboard + Prédiction)
+├── fraude_detection_bitcoin.ipynb    # Notebook EDA + Modélisation
+├── xgboost_ransomware_model.joblib   # Modèle XGBoost entraîné
+├── requirements.txt                  # Liste des packages nécessaires
+├── README.md                         # Ce fichier
+```
+
+---
+
+## 📊 Présentation du Dataset - BitcoinHeist
+
+- **Source** : Article scientifique "BitcoinHeist: Topological Data Analysis for Ransomware Detection on the Bitcoin Blockchain" (IJCAI 2020).
+- **Période** : Transactions de **janvier 2009 à décembre 2018**.
+- **Taille** : Environ 3 millions de transactions.
+- **Classes** : 
+    - `white` (adresse légitime)
+    - 24 familles de ransomwares connues (CryptoLocker, Locky, Cerber, etc.)
 
 ---
 
-### 🎯 Utilisation des Variables
+## 📊 Explication des Variables Clés
 
-- Entraîner un **modèle ML** pour détecter les adresses suspectes.
-- Étudier les **patterns de comportement** des ransomwares (fréquence, montants).
-- Créer des **règles métiers** (ex : une adresse qui reçoit > 100 paiements en 1 semaine est suspecte).
-- Visualiser le **réseau transactionnel** pour repérer les clusters suspects.
+| Variable | Description |
+|--|--|
+| **address** | Adresse Bitcoin étudiée |
+| **year / day** | Date de l’activité de l’adresse |
+| **length** | Nombre total de transactions associées à cette adresse |
+| **weight** | Indicateur de fusion de fonds (combien d’inputs sont fusionnés dans les sorties) |
+| **count** | Nombre total d’entrées et de sorties |
+| **looped** | Nombre de bouclages (réutilisation de fonds avec des adresses déjà connues) |
+| **neighbors** | Nombre d’adresses directement connectées |
+| **income** | Montant total reçu (en satoshis) |
+| **label** | Famille de ransomware ou `white` si légitime |
 
 ---
-`
+
+## ⚙️ Setup du Projet (Installation)
+
+1. **Cloner le projet** :
+    ```bash
+    git clone https://github.com/akdiOussama/RansomTrack.git
+    cd RansomTrack
+    ```
+
+2. **Créer un environnement virtuel** :
+    ```bash
+    python -m venv env
+    env\Scripts\activate   # (Windows) 
+    ```
+
+3. **Installer les dépendances** :
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+4. **Lancer l’application Streamlit** :
+    ```bash
+    streamlit run app.py
+    ```
+
+---
+
+## 📊 Ce que fait l’application
+
+✅ Dashboard d’exploration :
+- Distribution des labels (white vs ransomware)
+- Analyse de la fréquence des transactions ransomwares
+- Analyse des montants (log scale)
+- Top 5 des montants les plus fréquents chez les ransomwares
+
+✅ Prédiction :
+- L’utilisateur entre les caractéristiques d’une nouvelle transaction.
+- Le modèle XGBoost prédit si cette adresse est **légitime ou suspecte**.
+- Résultat affiché directement à l’écran.
+
+---
+
+## 📈 Modèle Utilisé
+
+- Modèle : **XGBoost Classifier**
+- Séparation : Train/Test (70/30)
+- Optimisation : GridSearchCV
+- Métriques : 
+    - Recall ransomware : 72%
+    - Précision ransomware : 83%
+    - F1-score ransomware : 77%
+
+---
+
+## ✅ Objectif final
+
+Ce projet fournit une **première brique opérationnelle** pour surveiller les paiements en Bitcoin et détecter les **tentatives de ransomwares**, tout en offrant aux analystes un outil visuel pour comprendre l’évolution de la menace.
+
+---
