@@ -15,7 +15,7 @@ L’ensemble du projet est intégré dans un **dashboard interactif Streamlit**,
 
 ```text
 📂 RansomTrack/
-├──  BitcoinHeistData.csv             # Dataset source
+├── BitcoinHeistData.csv             # Dataset source
 ├── app.py                            # Application Streamlit complète (Dashboard + Prédiction)
 ├── fraude_detection_bitcoin.ipynb    # Notebook EDA + Modélisation
 ├── xgboost_ransomware_model.joblib   # Modèle XGBoost entraîné
